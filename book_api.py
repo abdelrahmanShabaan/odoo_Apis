@@ -3,6 +3,15 @@ import json
 from odoo import http
 from odoo.http import request
 
+
+def valid_response(data, status):
+    response_body = {
+        'message': "successfully",
+        'data': data
+    }
+    return request.make_json_response(response_body , status=status)
+
+
 class BookApi(http.Controller):
 
     @http.route("/api/book", methods=["POST"], type="http", auth="none", csrf=False)
@@ -64,7 +73,7 @@ class BookApi(http.Controller):
         try:
             book_id = request.env['library.book'].sudo().search([('id', '=', book_id)])
             if not book_id:
-                return request.make_json_response({
+                return valid_response({
                     "message": "There is no book with this id"
                 }, status=400)
             return request.make_json_response({
@@ -104,7 +113,7 @@ class BookApi(http.Controller):
                 return request.make_json_response({
                     "message": "There is no books records"
                 }, status=400)
-            return request.make_json_response([{
+            return valid_response([{
                 "id": book_id.id,
                 "name": book_id.name,
             } for book_id in book_ids], status=200)
