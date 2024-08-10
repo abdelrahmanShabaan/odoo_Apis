@@ -77,5 +77,21 @@ class BookApi(http.Controller):
             }, status=400)
 
 
+    @http.route('/v1/book/delete/<int:book_id>',methods=['DELETE'], type='http', auth='none', csrf=False)
+    def delete_book(self, book_id):
+        try:
+            book_id = request.env['library.book'].sudo().search([('id', '=', book_id)])
+            if not book_id:
+                return request.make_json_response({
+                    "message": "There is no book with this id"
+                }, status=400)
+            book_id.unlink()
+            return request.make_json_response({
+                  "message": "There id of book is delete successfully",
+            }, status=200)
+        except Exception as error:
+            return request.make_json_response({
+                "message": "error"
+            }, status=400)
 
 
