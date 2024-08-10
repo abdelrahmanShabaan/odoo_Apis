@@ -95,3 +95,21 @@ class BookApi(http.Controller):
             }, status=400)
 
 
+
+    @http.route('/v1/all/books',methods=['GET'], type='http', auth='none', csrf=False)
+    def get_book_list(self):
+        try:
+            book_ids = request.env['library.book'].sudo().search([])
+            if not book_ids:
+                return request.make_json_response({
+                    "message": "There is no books records"
+                }, status=400)
+            return request.make_json_response([{
+                "id": book_id.id,
+                "name": book_id.name,
+            } for book_id in book_ids], status=200)
+        except Exception as error:
+            return request.make_json_response({
+                "message": "error"
+            }, status=400)
+
