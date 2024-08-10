@@ -1,7 +1,7 @@
 import json
-
 from odoo import http
 from odoo.http import request
+from urllib.parse import parse_qs
 
 
 def valid_response(data, status):
@@ -9,15 +9,14 @@ def valid_response(data, status):
         'message': "successfully",
         'data': data
     }
-    return request.make_json_response(response_body , status=status)
+    return request.make_json_response(response_body, status=status)
 
 
 def invalid_response(error, status):
     response_body = {
         'error': "error"
     }
-    return request.make_json_response(response_body , status=status)
-
+    return request.make_json_response(response_body, status=status)
 
 
 class BookApi(http.Controller):
@@ -36,12 +35,11 @@ class BookApi(http.Controller):
                 return request.make_json_response({
                     "message": "book has been created successfully",
                     "name": res.name,
-                },status=201)
+                }, status=201)
         except Exception as error:
             return request.make_json_response({
                 "message": "error"
             }, status=400)
-
 
     @http.route("/api/book/json", methods=["POST"], type="json", auth="none", csrf=False)
     def post_book_json(self):
@@ -56,7 +54,7 @@ class BookApi(http.Controller):
 
     @http.route('/v1/book/<int:book_id>', methods=['PUT'], type='http', auth='none', csrf=False)
     def update_book(self, book_id):
-       try:
+        try:
             book_id = request.env['library.book'].sudo().search([('id', '=', book_id)])
             if not book_id:
                 return request.make_json_response({
@@ -67,16 +65,15 @@ class BookApi(http.Controller):
             book_id.write(vals)
             return request.make_json_response({
                 "message": "book has been update successfully",
-                "id" : book_id.id,
+                "id": book_id.id,
                 "name": book_id.name,
             }, status=201)
-       except Exception as error:
-           return request.make_json_response({
-               "message": "error"
-           }, status=400)
+        except Exception as error:
+            return request.make_json_response({
+                "message": "error"
+            }, status=400)
 
-
-    @http.route('/v1/book/<int:book_id>',methods=['GET'], type='http', auth='none', csrf=False)
+    @http.route('/v1/book/<int:book_id>', methods=['GET'], type='http', auth='none', csrf=False)
     def get_book(self, book_id):
         try:
             book_id = request.env['library.book'].sudo().search([('id', '=', book_id)])
@@ -93,8 +90,7 @@ class BookApi(http.Controller):
                 "message": "error"
             }, status=400)
 
-
-    @http.route('/v1/book/delete/<int:book_id>',methods=['DELETE'], type='http', auth='none', csrf=False)
+    @http.route('/v1/book/delete/<int:book_id>', methods=['DELETE'], type='http', auth='none', csrf=False)
     def delete_book(self, book_id):
         try:
             book_id = request.env['library.book'].sudo().search([('id', '=', book_id)])
@@ -104,19 +100,21 @@ class BookApi(http.Controller):
                 }, status=400)
             book_id.unlink()
             return request.make_json_response({
-                  "message": "There id of book is delete successfully",
+                "message": "There id of book is delete successfully",
             }, status=200)
         except Exception as error:
             return request.make_json_response({
                 "message": "error"
             }, status=400)
 
-
-
-    @http.route('/v1/all/books',methods=['GET'], type='http', auth='none', csrf=False)
+    @http.route('/v1/all/books', methods=['GET'], type='http', auth='none', csrf=False)
     def get_book_list(self):
         try:
-            book_ids = request.env['library.book'].sudo().search([])
+            params = parse_qs(request.httprequest.query_string.decode('utf-8'))
+            book_domain = []
+            if params.get('state'):
+                book_domain += [('state', '=', params.get('state')[0])]
+            book_ids = request.env['library.book'].sudo().search(book_domain, offset=2, limit=3, order='id desc')
             if not book_ids:
                 return request.make_json_response({
                     "message": "There is no books records"
@@ -129,4 +127,3 @@ class BookApi(http.Controller):
             return invalid_response({
                 "message": "error"
             }, status=400)
-
