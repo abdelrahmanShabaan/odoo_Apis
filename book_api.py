@@ -12,6 +12,14 @@ def valid_response(data, status):
     return request.make_json_response(response_body , status=status)
 
 
+def invalid_response(error, status):
+    response_body = {
+        'error': "error"
+    }
+    return request.make_json_response(response_body , status=status)
+
+
+
 class BookApi(http.Controller):
 
     @http.route("/api/book", methods=["POST"], type="http", auth="none", csrf=False)
@@ -73,8 +81,8 @@ class BookApi(http.Controller):
         try:
             book_id = request.env['library.book'].sudo().search([('id', '=', book_id)])
             if not book_id:
-                return valid_response({
-                    "message": "There is no book with this id"
+                return invalid_response({
+                    "error": "There is no book with this id"
                 }, status=400)
             return request.make_json_response({
                 "id": book_id.id,
@@ -118,7 +126,7 @@ class BookApi(http.Controller):
                 "name": book_id.name,
             } for book_id in book_ids], status=200)
         except Exception as error:
-            return request.make_json_response({
+            return invalid_response({
                 "message": "error"
             }, status=400)
 
